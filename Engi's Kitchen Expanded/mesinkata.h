@@ -17,16 +17,18 @@ typedef struct {
 } Kata;
 
 /* State Mesin Kata */
-extern Kata CKata;
 extern boolean EndKata;
-// extern Kata CKata;
+extern Kata CKata;
+
+void BacaInput(Kata *Input);
+/* Membaca input dari command user selama bukan spasi dan enter*/
 
 void IgnoreBlank();
 /* Mengabaikan satu atau beberapa BLANK
    I.S. : CC sembarang 
    F.S. : CC ≠ BLANK atau CC = MARK */
 
-void STARTKATA(char *file);
+void STARTKATA(char *file, boolean IsForLayout);
 /* I.S. : CC sembarang 
    F.S. : EndKata = true, dan CC = MARK; 
           atau EndKata = false, CKata adalah kata yang sudah diakuisisi,
@@ -47,6 +49,11 @@ void SalinKata();
           CC adalah karakter sesudah karakter terakhir yang diakuisisi.
           Jika panjang kata melebihi NMax, maka sisa kata "dipotong" */
 
+boolean IsKataSama(Kata Kata1, char *s);
+/* Memeriksa apakah kata1 sudah sama dengan string s*/
+
 void ADVLAYOUT();
+
 void SalinLayout();
+
 #endif

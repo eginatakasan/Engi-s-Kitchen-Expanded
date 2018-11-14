@@ -7,6 +7,7 @@
 #include "mesinkar.h"
 #include "mesinkata.h"
 #include <stdio.h>
+#include <string.h>
 
 boolean EndKata;
 Kata CKata;
@@ -35,19 +36,22 @@ void IgnoreBlank()
 	}
 }
 
-void STARTKATA(char *file)
+void STARTKATA(char *file, boolean IsForLayout)
 {
 	START(file);
 	IgnoreBlank();
-	if (CC==MARK)
-	{
-		EndKata = true;
-	}
-	else 
-	{
-		EndKata = false;
-		SalinLayout();
-	}
+ 	if (CC==MARK)
+ 	{
+  		EndKata = true;
+ 	}
+ 	else 
+ 	{
+  		EndKata = false;
+  		if(IsForLayout)
+   			SalinLayout();
+  		else
+   			SalinKata();
+ 	}
 }
 
 void ADVKATA()
@@ -67,8 +71,7 @@ void ADVKATA()
 void SalinKata()
 {
 	int i=1;
-
-	while (CC!=MARK && CC!=' ' && i<=NMax)
+	while (CC!=MARK && i<=NMax)
 	{
 		CKata.TabKata[i]=CC;
 		ADV();
@@ -78,13 +81,40 @@ void SalinKata()
 
 	if(i==NMax+1)
 	{
-		while (CC!=MARK && CC!=' ')
+		while (CC!=MARK)
 		{
 			ADV();
 		}
 	}
 }
 
+boolean IsKataSama(Kata Kata1, char *s)
+{
+	int i;
+	char command[20];
+	memcpy(command,s,strlen(s));
+	if (Kata1.Length !=  strlen(s))
+	{
+		return false;
+	}
+	else
+	{
+		boolean sama = true;
+		int i = 1;
+		while ((i<=Kata1.Length) && (sama))
+		{
+			if (Kata1.TabKata[i]!=command[i-1])
+			{
+				sama = false;
+			}
+			else
+			{
+				i++;
+			}
+		}
+		return sama;
+	}
+}
 
 void ADVLAYOUT()
 {
