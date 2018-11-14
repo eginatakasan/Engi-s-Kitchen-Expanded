@@ -26,6 +26,18 @@ void MakeMATRIKS (int NB, int NK, MATRIKS * M)
 	(*M).NKolEff = NK;
 }
 
+void IsiMATRIKS(MATRIKS *M)
+{
+	int i,j;
+	for (i=1;i<=NBrsEff(*M);i++)
+	{
+		for (j=1;j<=NKolEff(*M);j++)
+		{
+			ElmtM((*M),i,j)=' ';
+		}
+	}
+}
+
 /* *** Selektor "DUNIA MATRIKS" *** */
 boolean IsIdxValid (int i, int j)
 /* Mengirimkan true jika i, j adalah indeks yang valid untuk matriks apa pun */
