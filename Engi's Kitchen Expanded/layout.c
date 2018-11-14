@@ -5,12 +5,21 @@
 #include "point.h"
 #include "stackt.h"
 #include "array.h"
-#include "jam.h"
 #include "simul.h"
 #include "mesinkata.h"
 
+typedef struct{
+   MATRIKS ruangan;
+   POINT Pintu1;
+   POINT Pintu2;
+} Peta;
 
-MATRIKS Map;
+typedef struct{
+   int ruang;
+   POINT titik;
+} Player;
+
+
 char layoutc;
 static FILE *layoutfile;
 typedef char string[300];
@@ -25,12 +34,13 @@ typedef enum {
 simulation Sim;
 Queue QMain;
 int NBFood;
-POINT player;
+Player P;
 Queue QLay;
 Stack Food;
 Stack Hand;
 string Info;
 TabStr Order;
+Peta Restoran[4];
 
 
 void CalculateSpace(int len,condition label){ //menambah space di cmd biar bingkainya tetap
@@ -147,8 +157,6 @@ void DrawUntil(){ //baca dan print dari layout_file.txt sampe ketemu CC
       // printf("\n");
    }
    ADVLAYOUT();
-   // printf("Is EndKata2? %d", EndKata);
-   // printf("\n");
 }
 
 void CekInfo(string* Info){//mengecek barang di sekitar player untuk info
@@ -170,7 +178,7 @@ void DrawLayout() { //menggambar layout dan semua elemennya
    
 
    /* algoritma */
-   STARTKATA("Layout_file.txt");
+   STARTKATA("Layout_file.txt",1);
 
    //upper border
    printf(" ");
@@ -210,10 +218,10 @@ void DrawLayout() { //menggambar layout dan semua elemennya
 
       if(i<9){
       	for(j=1;j<=7;j++){
-      		PrintMap(Map,i,j);
+      		PrintMap(Restoran[0].ruangan,i,j);
       		DrawUntil();
       	}
-      	PrintMap(Map,i,8);
+      	PrintMap(Restoran[0].ruangan,i,8);
       }
       
       DrawUntil();
@@ -240,8 +248,73 @@ void DrawLayout() { //menggambar layout dan semua elemennya
    	DrawUntil();
 }
 
+void GL(Player *P, MATRIKS *M)
+{
+   boolean ubah = false;
+   if(Ordinat((*P).titik)!=1 && (ElmtM((*M),Absis((*P).titik),Ordinat((*P).titik)-1)==' '))
+   {
+      Ordinat((*P).titik)-=1;
+      ubah = true;
+   }
+   if(ubah)
+   {
+      ElmtM((*M),Absis((*P).titik),Ordinat((*P).titik)+1)=' ';
+      ElmtM((*M),Absis((*P).titik),Ordinat((*P).titik))='P';
+   }
+}
+
+void GR(Player *P, MATRIKS *M)
+{
+   boolean ubah = false;
+   if(Ordinat((*P).titik)!=NKolEff(*M) && (ElmtM((*M),Absis((*P).titik),Ordinat((*P).titik)+1)==' '))
+   {
+      Ordinat((*P).titik)+=1;
+      ubah = true;
+   }
+   if(ubah)
+   {
+      ElmtM((*M),Absis((*P).titik),Ordinat((*P).titik)-1)=' ';
+      ElmtM((*M),Absis((*P).titik),Ordinat((*P).titik))='P';
+   }   
+}
+
+void GU(Player *P, MATRIKS *M)
+{
+   boolean ubah = false;
+   if(Absis((*P).titik)!=1 && (ElmtM((*M),Absis((*P).titik)-1,Ordinat((*P).titik))==' '))
+   {
+      Absis((*P).titik)-=1;
+      ubah = true;
+   }
+   if(ubah)
+   {
+      ElmtM(*M,Absis((*P).titik)+1,Ordinat((*P).titik))=' ';
+      ElmtM(*M,Absis((*P).titik),Ordinat((*P).titik))='P';
+   }
+}
+
+void GD(Player *P, MATRIKS *M)
+{
+  boolean ubah = false;
+   if(Absis((*P).titik)!=NBrsEff(*M) && (ElmtM((*M),Absis((*P).titik)+1,Ordinat((*P).titik))==' '))
+   {
+      printf("1%d\n", Absis((*P).titik));
+      Absis((*P).titik)+=1;
+      ubah = true;
+      printf("2%d\n", Absis((*P).titik));
+   }
+   if(ubah)
+   {
+      ElmtM(*M,Absis((*P).titik)-1,Ordinat((*P).titik))=' ';
+      ElmtM(*M,Absis((*P).titik),Ordinat((*P).titik))='P';
+   }
+}
+
+
+
 
 int main(){
+   Kata inp;
 	int i;
 	strcpy(Sim.name, "Eginata");
 	Sim.time = 12;
@@ -250,17 +323,23 @@ int main(){
 
 	CreateEmptyQ(&QLay,8);
 	CreateEmptyS(&Food);
-	MakeMATRIKS(8,8,&Map);
+	MakeMATRIKS(8,8,&Restoran[0].ruangan);
+   IsiMATRIKS(&Restoran[0].ruangan);
+   MakeMATRIKS(8,8,&Restoran[1].ruangan);
+   IsiMATRIKS(&Restoran[1].ruangan);  
+   MakeMATRIKS(8,8,&Restoran[2].ruangan);
+   IsiMATRIKS(&Restoran[2].ruangan);
+   MakeMATRIKS(8,8,&Restoran[3].ruangan);
+   IsiMATRIKS(&Restoran[3].ruangan);
 	
 	CreateEmptyS(&Hand);
-	player = MakePOINT(2,2);
+	
 
 	Add(&QLay, 2);
 	Add(&QLay, 4);
 	Add(&QLay, 1);
 	Add(&QLay, 1);
 	Add(&QLay, 2);
-	Add(&QLay, 1);
 	Add(&QLay, 4);
 	
 	Push(&Food, "Burger");
@@ -277,8 +356,48 @@ int main(){
 	strcpy(ElmtA(Order,1), "Burger");
 	strcpy(ElmtA(Order,4),"Sosis");
 	
-	strcpy(Info,"Hello there");
-	ElmtM(Map,player.X,player.Y) = 'P';
+   strcpy(Info,"Hello there");
+
+   P.ruang = 0;
+   P.titik = MakePOINT(3,8);
+
+   //Bikin Pintu
+   Restoran[0].Pintu1 = MakePOINT()
+
+
+	ElmtM(Restoran[P.ruang].ruangan,P.titik.X,P.titik.Y) = 'P';
 	
 	DrawLayout();
+
+   BacaInput(&inp);
+   while (IsKataSama(inp,"GL") || IsKataSama(inp,"GR") || IsKataSama(inp,"GU") || IsKataSama(inp,"GD"))
+   {
+      if(IsKataSama(inp,"GL")) 
+      {
+         GL(&P,&Restoran[P.ruang].ruangan);
+         printf("%d\n", P.titik.X);
+      }
+      else if (IsKataSama(inp,"GR")) 
+      {
+         GR(&P,&Restoran[P.ruang].ruangan);
+         printf("%d\n", P.titik.X);
+      }
+      else if (IsKataSama(inp,"GU")) 
+      {
+         GU(&P,&Restoran[P.ruang].ruangan);
+         printf("%d\n", P.titik.X);
+      }
+      else if (IsKataSama(inp,"GD")) 
+      {
+         GD(&P,&Restoran[P.ruang].ruangan);
+         printf("%d\n", P.titik.X);
+      }
+      else
+      {
+         printf("no\n");
+      }
+      DrawLayout();
+      BacaInput(&inp);
+   }
+      return 0;
 }
